@@ -32,7 +32,7 @@ def get_posts():
     """
     # Variables
     header_img = True
-    search_called=False
+    search_called = False
     POSTS_PER_PAGE = 5
     page = request.args.get('page', 1, type=int)
     SKIP_POSTS = (page - 1) * POSTS_PER_PAGE
@@ -67,7 +67,7 @@ def search():
     posts = list(mongo.db.posts.find(
         {'$text': {'$search': query}}).sort([('date', -1), ('edit_date', -1)]))
     header_img = True
-    search_called=True
+    search_called = True
 
     # Attach Genre name to Genre ID.
     for post in posts:
@@ -146,6 +146,7 @@ def search_profile(user_id):
     """
     user = mongo.db.users.find_one({'_id': ObjectId(user_id)})
     posts = list(mongo.db.posts.find({'created_by': user['username']}))
+    users = list(mongo.db.users.find())
 
     # Attach Genre name to Genre ID.
     for post in posts:
@@ -153,7 +154,8 @@ def search_profile(user_id):
             {"_id": ObjectId(post["genre_id"])})["genre_name"]
         post['genre_name'] = genre_name
 
-    return render_template("profile.html", user=user, posts=posts)
+    return render_template("profile.html", user=user, posts=posts,
+                            users=users)
 
 
 @app.route('/profile/<username>', methods=['GET', 'POST'])
@@ -165,8 +167,10 @@ def profile(username):
     """
     user = mongo.db.users.find_one({'username': session['user']})
     posts = mongo.db.posts.find({'created_by': user['username']})
+    users = list(mongo.db.users.find())
     if session['user']:
-        return render_template("profile.html", user=user, posts=posts)
+        return render_template("profile.html", user=user, 
+                               posts=posts, users=users)
     return redirect(url_for('login'))
 
 
